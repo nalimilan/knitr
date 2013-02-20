@@ -109,6 +109,8 @@ block_exec = function(options) {
   if (keep != 'none' && is.null(options$fig.ext))
     options$fig.ext = dev2ext(options$dev)
 
+  env$print.matrix <- function(x, ...) knit_hooks$get('table')(x, options)
+
   # return code with class 'source' if not eval chunks
   res = if (is_blank(code)) list() else if (isFALSE(ev)) {
     list(structure(list(src = code), class = 'source'))

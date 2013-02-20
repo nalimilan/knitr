@@ -33,8 +33,19 @@ render_markdown = function(strict = FALSE) {
   }
   hook.r = function(x, options) str_c('\n\n```', tolower(options$engine), '\n', x, '```\n\n')
   hook.o = function(x, options) if (output_asis(x, options)) x else hook.t(x, options)
+  hook.table = function(x, options) {
+      x <- if(!is.null(rownames(x)) && any(rownames(x) != "")) cbind(rownames(x), format(x)) else format(x)
+
+      cnames <- if(!is.null(colnames(x))) colnames(x) else rep("", ncol(x))
+
+      cnames <- mapply(function(n, w) format(n, width=w), cnames, nchar(x[1,]))
+      line <- paste(sapply(nchar(x[1,]), function(n) paste(rep("-", n), collapse="")), collapse="-|-")
+      text <- paste(paste(cnames, collapse=" | "), line, paste(apply(x, 1, paste, collapse=" | "), collapse="\n"), sep="\n")
+
+      cat(text)
+  }
   knit_hooks$set(
-    source = if (strict) hook.t else hook.r, output = hook.o,
+    source = if (strict) hook.t else hook.r, output = hook.o, table = hook.table,
     warning = hook.t, error = hook.t, message = hook.t,
     inline = function(x) .inline.hook(format_sci(x, 'html')),
     plot = hook_plot_md,
